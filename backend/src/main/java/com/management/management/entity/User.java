@@ -23,4 +23,9 @@ public class User {
     private String password;
 
     private String role; // Ví dụ: "ROLE_ADMIN" hoặc "ROLE_USER"
+
+    // --- Các trường mới thêm ---
+    private String email;
+
+    private String phone;
 }

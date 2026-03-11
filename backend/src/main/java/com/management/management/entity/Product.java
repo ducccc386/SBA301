@@ -1,27 +1,31 @@
 package com.management.management.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "products")
+@Table(name = "Products")
 @Data
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // Đổi sang Long cho đồng bộ với User
 
+    @Column(nullable = false)
     private String name;
+
+    @Column(nullable = false)
     private Double price;
+
     private Integer quantity;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    private String status;
+
+    // --- PHẦN QUAN TRỌNG NHẤT ĐỂ FIX LỖI ---
     @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @JoinColumn(name = "category_id") // Đây là cột khóa ngoại trong DB
+    private Category category; // Biến này phải tên là 'category' để khớp với mappedBy bên file Category.java
 }
