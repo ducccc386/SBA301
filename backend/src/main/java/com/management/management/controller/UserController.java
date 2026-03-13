@@ -1,7 +1,7 @@
 package com.management.management.controller;
 
 import com.management.management.entity.User;
-import com.management.management.repository.UserRepository;
+import com.management.management.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,10 +13,10 @@ import java.util.List;
 public class UserController {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserService userService; // Sử dụng Service thay vì Repository
 
     @GetMapping
     public List<User> getAll() {
-        return userRepository.findAll();
+        return userService.getAllUsers();
     }
 }

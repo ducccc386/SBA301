@@ -1,7 +1,7 @@
 package com.management.management.controller;
 
 import com.management.management.entity.Category;
-import com.management.management.repository.CategoryRepository;
+import com.management.management.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -10,16 +10,17 @@ import java.util.List;
 @RequestMapping("/api/categories")
 @CrossOrigin("*")
 public class CategoryController {
+
     @Autowired
-    private CategoryRepository categoryRepository;
+    private CategoryService categoryService; // Tiêm Service vào thay vì Repository
 
     @GetMapping
     public List<Category> getAll() {
-        return categoryRepository.findAll();
+        return categoryService.getAllCategories();
     }
 
     @PostMapping
     public Category create(@RequestBody Category category) {
-        return categoryRepository.save(category);
+        return categoryService.saveCategory(category);
     }
 }
