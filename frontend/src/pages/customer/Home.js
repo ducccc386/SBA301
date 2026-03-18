@@ -9,9 +9,10 @@ const Home = ({ searchTerm }) => {
     const [selectedCategory, setSelectedCategory] = useState(null);
 
     useEffect(() => {
+        console.log("Component Home đã mount - Bắt đầu gọi API"); // Thêm dòng này
         const fetchData = async () => {
             try {
-                const prodRes = await productApi.getAll();
+                const prodRes = await productApi.getAllActive();
                 const catRes = await categoryApi.getAll();
                 setProducts(prodRes.data);
                 setCategories(catRes.data);

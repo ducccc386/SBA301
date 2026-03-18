@@ -19,6 +19,9 @@ public class Product {
 
     private Integer quantity;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(name = "image_url")
     private String imageUrl;
 

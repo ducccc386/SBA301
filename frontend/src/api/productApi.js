@@ -2,7 +2,10 @@ import axiosClient from "./axiosClient";
 
 const productApi = {
     // Lấy tất cả sản phẩm
-    getAll: () => axiosClient.get('/products'),
+    getAll: () => axiosClient.get('/products'), // Admin dùng cái này (lấy hết)
+
+    // THÊM DÒNG NÀY: Khách hàng dùng cái này (chỉ lấy hàng Active)
+    getAllActive: () => axiosClient.get('/products/active'),
 
     // Lấy sản phẩm theo ID
     getById: (id) => axiosClient.get(`/products/${id}`),

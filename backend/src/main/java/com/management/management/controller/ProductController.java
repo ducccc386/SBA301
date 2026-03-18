@@ -20,6 +20,11 @@ public class ProductController {
         return productService.getAllProducts();
     }
 
+    @GetMapping("/active")
+    public List<Product> getActiveOnly() {
+        return productService.getActiveProducts(); // Gọi hàm đã lọc
+    }
+
     @PostMapping
     public Product create(@RequestBody Product product) {
         return productService.createProduct(product);
