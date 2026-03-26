@@ -1,15 +1,11 @@
 package com.management.management.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import java.time.LocalDateTime;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "users")
+@Table(name = "Users") // Nên viết hoa chữ U nếu trong MS SQL bạn đặt là Users
 @Data
 public class User {
     @Id
@@ -22,10 +18,22 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String role; // Ví dụ: "ROLE_ADMIN" hoặc "ROLE_USER"
+    private String role; // "ROLE_ADMIN" hoặc "ROLE_USER"
 
-    // --- Các trường mới thêm ---
+    @Column(unique = true) // Đảm bảo email không trùng lặp
     private String email;
 
     private String phone;
+
+    @Column(columnDefinition = "NVARCHAR(MAX)") // Chỉ định rõ kiểu dữ liệu hỗ trợ tiếng Việt trong MS SQL
+    private String address;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    // --- Tự động gán ngày tạo khi thêm mới ---
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
 }

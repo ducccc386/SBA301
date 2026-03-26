@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -9,6 +9,7 @@ import Navbar from './components/layout/Navbar';
 import Home from './pages/customer/Home';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CategoryManagement from './pages/admin/CategoryManagement';
+import OrderList from './pages/admin/OrderList'; // BỔ SUNG: Khắc phục lỗi "No routes matched"
 import Login from './pages/auth/Login';
 
 // Import các thành phần Bảo mật
@@ -21,7 +22,6 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
 
   return (
     <>
-      {/* --- PHẦN BỔ SUNG: Cấu hình hiển thị thông báo --- */}
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -33,7 +33,7 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
         draggable
         pauseOnHover
         theme="colored"
-        style={{ zIndex: 9999 }} // Quan trọng: Đảm bảo nổi lên trên Modal
+        style={{ zIndex: 9999 }}
       />
 
       {!isAdminPage && (
@@ -42,9 +42,11 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
 
       <div className={isAdminPage ? "" : "container mt-4"}>
         <Routes>
+          {/* --- PUBLIC ROUTES --- */}
           <Route path="/" element={<Home searchTerm={searchTerm} />} />
           <Route path="/login" element={<Login />} />
 
+          {/* --- ADMIN ROUTES (Bọc trong ProtectedRoute để tránh lỗi 403) --- */}
           <Route path="/admin" element={
             <ProtectedRoute>
               <AdminDashboard />
@@ -56,6 +58,16 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
               <CategoryManagement />
             </ProtectedRoute>
           } />
+
+          {/* BỔ SUNG QUAN TRỌNG: Route này giải quyết lỗi màn hình trắng khi vào /admin/orders */}
+          <Route path="/admin/orders" element={
+            <ProtectedRoute>
+              <OrderList />
+            </ProtectedRoute>
+          } />
+
+          {/* --- CATCH ALL: Chống lỗi khi vào đường dẫn không tồn tại --- */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
     </>

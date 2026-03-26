@@ -14,10 +14,6 @@ public class OrderDetail {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer quantity;
-
-    private Double price; // Giá tại thời điểm mua
-
     @ManyToOne
     @JoinColumn(name = "order_id")
     private Order order;
@@ -25,4 +21,8 @@ public class OrderDetail {
     @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+
+    private Integer quantity;
+
+    private Double price; // Lưu giá tại thời điểm mua (quan trọng)
 }
