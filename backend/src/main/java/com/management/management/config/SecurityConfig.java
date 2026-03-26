@@ -7,7 +7,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -43,8 +43,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Tạm thời dùng cái này để test, mật khẩu trong DB để là '123456' dạng chữ
-        // thường
-        return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
+        // Lưu ý: NoOpPasswordEncoder đã bị đánh dấu lỗi thời (deprecated)
+        // vì nó không bảo mật, nhưng cực kỳ phù hợp để bạn TEST dự án lúc này.
+        return NoOpPasswordEncoder.getInstance();
     }
 }

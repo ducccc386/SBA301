@@ -27,6 +27,21 @@ const AdminDashboard = () => {
         }
     };
 
+    // Hàm xử lý Xóa có xác nhận
+    const handleDeleteProduct = async (productId) => {
+        const isConfirmed = window.confirm("⚠️ Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác!");
+        if (isConfirmed) {
+            try {
+                await productApi.delete(productId);
+                await loadData(); // Gọi lại hàm loadData để cập nhật danh sách
+                alert("Đã xóa sản phẩm thành công!");
+            } catch (error) {
+                console.error("Lỗi khi xóa:", error);
+                alert("Xóa thất bại! Vui lòng thử lại.");
+            }
+        }
+    };
+
     const totalValue = products.reduce((sum, p) => sum + ((p.price || 0) * (p.quantity || 0)), 0);
     const lowStockCount = products.filter(p => (p.quantity || 0) < 10).length;
 
@@ -54,9 +69,12 @@ const AdminDashboard = () => {
             alert("Lưu thất bại!");
         }
     };
+
     const userName = localStorage.getItem('username') || "Quản trị viên";
+
     return (
         <div className="d-flex min-vh-100" style={{ backgroundColor: '#f8f9fc' }}>
+            {/* Sidebar */}
             <div className="bg-white border-end shadow-sm" style={{ width: '270px', zIndex: 100 }}>
                 <div className="p-4 border-bottom bg-primary text-white text-center shadow-sm">
                     <h5 className="fw-bold m-0"><i className="bi bi-speedometer2 me-2"></i>ADMIN PANEL</h5>
@@ -72,6 +90,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
+            {/* Main Content */}
             <div className="flex-grow-1 d-flex flex-column">
                 <AdminNavbar adminName={userName} />
                 <div className="p-4">
@@ -83,6 +102,7 @@ const AdminDashboard = () => {
                         </button>
                     </div>
 
+                    {/* Stats Cards */}
                     <div className="row g-4 mb-4 text-white">
                         <div className="col-md-4">
                             <div className="card border-0 shadow-sm p-4 bg-dark rounded-4 border-start border-5 border-primary">
@@ -105,12 +125,15 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="row g-4">
+                        {/* Chart */}
                         <div className="col-lg-4">
                             <div className="card border-0 shadow-sm p-4 bg-dark text-white rounded-4 h-100">
                                 <h6 className="fw-bold mb-4 text-center border-bottom pb-2">Phân bổ danh mục</h6>
                                 <Pie data={chartData} options={{ plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } } }} />
                             </div>
                         </div>
+
+                        {/* Table */}
                         <div className="col-lg-8">
                             <div className="card border-0 shadow-sm bg-dark text-white rounded-4 overflow-hidden">
                                 <table className="table table-dark table-hover align-middle m-0">
@@ -130,25 +153,18 @@ const AdminDashboard = () => {
                                                 <td className="ps-4"><img src={p.imageUrl} width="40" height="40" className="rounded border border-secondary" alt="" /></td>
                                                 <td className="fw-bold">{p.name}</td>
                                                 <td className="text-info">{p.price?.toLocaleString('vi-VN')} đ</td>
-
-                                                {/* CẢNH BÁO KHO: Nếu < 10 thì hiện màu đỏ đỏ chói */}
                                                 <td className={`fw-bold ${p.quantity < 10 ? 'text-danger' : ''}`}>
                                                     {p.quantity} {p.quantity < 10 && <i className="bi bi-exclamation-triangle-fill ms-1"></i>}
                                                 </td>
-
-                                                {/* TRẠNG THÁI: Active xanh, Inactive đỏ */}
                                                 <td>
-                                                    <span className={`badge rounded-pill ${p.status === 'Inactive'
-                                                        ? 'bg-danger text-white'
-                                                        : 'bg-success text-white'
-                                                        }`} style={{ padding: '6px 12px' }}>
+                                                    <span className={`badge rounded-pill ${p.status === 'Inactive' ? 'bg-danger text-white' : 'bg-success text-white'}`} style={{ padding: '6px 12px' }}>
                                                         {p.status || 'Active'}
                                                     </span>
                                                 </td>
-
                                                 <td className="text-center">
                                                     <button className="btn btn-sm btn-warning me-2" onClick={() => { setSelectedProduct(p); setShowForm(true); }}>Sửa</button>
-                                                    <button className="btn btn-sm btn-danger" onClick={() => productApi.delete(p.id).then(loadData)}>Xóa</button>
+                                                    {/* Sử dụng hàm handleDeleteProduct mới thay cho productApi.delete trực tiếp */}
+                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteProduct(p.id)}>Xóa</button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -160,6 +176,7 @@ const AdminDashboard = () => {
                 </div>
             </div>
 
+            {/* Modal Form */}
             {showForm && (
                 <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', zIndex: 1060 }}>
                     <div className="modal-dialog modal-lg modal-dialog-centered">

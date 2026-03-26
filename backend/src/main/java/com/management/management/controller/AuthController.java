@@ -43,7 +43,9 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            return ResponseEntity.status(401).body("Sai tài khoản hoặc mật khẩu!");
+
+            e.printStackTrace(); // Dòng này sẽ in lỗi chi tiết ra console của Eclipse/IntelliJ
+            return ResponseEntity.status(401).body("Lỗi: " + e.getMessage());
         }
     }
 }
