@@ -3,13 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Navbar = ({ searchTerm, setSearchTerm }) => {
-    const { user, logout } = useAuth(); // Lấy thông tin user và hàm logout
+    const { user, logout } = useAuth();
     const navigate = useNavigate();
 
     const handleLogoutClick = () => {
         if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
-            logout(); // Hàm này bạn đã sửa trong AuthContext để xóa localStorage
-            navigate('/login');
+            logout(); // Gọi hàm xóa user và set state về null
+            navigate('/login'); // Chuyển hướng về trang đăng nhập
         }
     };
 
@@ -31,7 +31,7 @@ const Navbar = ({ searchTerm, setSearchTerm }) => {
                         )}
                     </ul>
 
-                    {/* THANH TÌM KIẾM */}
+                    {/* THANH TÌM KIẾM - GIỮ NGUYÊN */}
                     <form className="d-flex w-50">
                         <input
                             className="form-control me-2 rounded-pill"

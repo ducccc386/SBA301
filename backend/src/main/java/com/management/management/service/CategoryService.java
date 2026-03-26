@@ -19,4 +19,15 @@ public class CategoryService {
     public Category saveCategory(Category category) {
         return categoryRepository.save(category);
     }
+
+    public void deleteCategory(Long id) {
+        categoryRepository.deleteById(id);
+    }
+
+    public Category getCategoryById(Long id) {
+        // Tận dụng class ResourceNotFoundException bạn đã có
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new com.management.management.exception.ResourceNotFoundException(
+                        "Không tìm thấy danh mục với ID: " + id));
+    }
 }

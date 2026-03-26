@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import axiosClient from '../../api/axiosClient';
 
 const Login = () => {
     const [username, setUsername] = useState("");
@@ -16,23 +16,26 @@ const Login = () => {
         setError("");
 
         try {
-            // GỌI API THẬT
-            const response = await axios.post("http://localhost:8080/api/auth/login", {
+            // SỬA Ở ĐÂY: Không dùng URL tuyệt đối "http://localhost:8080..."
+            // Vì axiosClient đã có baseURL, bạn chỉ cần dùng đường dẫn tương đối.
+            // Quan trọng hơn: Dùng đường dẫn tương đối giúp axios áp dụng đúng cấu hình withCredentials.
+            const response = await axiosClient.post("/auth/login", {
                 username: username,
                 password: password
             });
 
             const userData = response.data;
             console.log("Dữ liệu đăng nhập nhận được:", userData);
+
             if (!userData || !userData.role) {
                 setError("Dữ liệu server trả về không đúng cấu trúc!");
                 return;
             }
+
             // Lưu vào Context
             login(userData);
 
-            // PHÂN QUYỀN ĐIỀU HƯỚNG DỰA TRÊN ROLE THẬT TỪ DATABASE
-            // Kiểm tra cả 'ROLE_ADMIN' (chuẩn Spring) hoặc 'ADMIN'
+            // PHÂN QUYỀN ĐIỀU HƯỚNG
             if (userData.role === 'ROLE_ADMIN' || userData.role === 'ADMIN') {
                 console.log("Là Admin -> Đi tới trang Quản trị");
                 navigate('/admin');

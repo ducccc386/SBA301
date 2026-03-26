@@ -3,17 +3,23 @@ import productApi from '../../api/productApi';
 import categoryApi from '../../api/categoryApi';
 import ProductForm from './ProductForm';
 import AdminNavbar from '../../components/layout/AdminNavbar';
+import Sidebar from '../../components/layout/AdminSidebar';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
+import { toast } from 'react-toastify';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const AdminDashboard = () => {
-    const [currentTab, setCurrentTab] = useState('products');
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showForm, setShowForm] = useState(false);
+
+    // --- STATE MỚI CHO TÌM KIẾM & PHÂN TRANG ---
+    const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
 
     useEffect(() => { loadData(); }, []);
 
@@ -24,21 +30,61 @@ const AdminDashboard = () => {
             setCategories(resCat.data);
         } catch (error) {
             console.error("Lỗi tải dữ liệu:", error);
+            if (error.response?.status === 403) {
+                toast.error("🚫 Bạn không có quyền xem trang quản trị!");
+            } else {
+                toast.error("Lỗi kết nối máy chủ!");
+            }
         }
     };
 
-    // Hàm xử lý Xóa có xác nhận
+    // --- LOGIC LỌC VÀ PHÂN TRANG ---
+    const filteredProducts = products.filter(p =>
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.category?.name && p.category.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const currentItems = filteredProducts.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
     const handleDeleteProduct = async (productId) => {
-        const isConfirmed = window.confirm("⚠️ Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác!");
+        const isConfirmed = window.confirm("⚠️ Bạn có chắc chắn muốn xóa sản phẩm này không?");
         if (isConfirmed) {
+            const idToast = toast.loading("Đang xóa...");
             try {
                 await productApi.delete(productId);
-                await loadData(); // Gọi lại hàm loadData để cập nhật danh sách
-                alert("Đã xóa sản phẩm thành công!");
+                await loadData();
+                toast.update(idToast, { render: "Đã xóa sản phẩm!", type: "success", isLoading: false, autoClose: 2000 });
             } catch (error) {
-                console.error("Lỗi khi xóa:", error);
-                alert("Xóa thất bại! Vui lòng thử lại.");
+                let msg = "Xóa thất bại!";
+                if (error.response?.status === 403) msg = "🚫 Lỗi 403: Bạn không có quyền xóa!";
+                toast.update(idToast, { render: msg, type: "error", isLoading: false, autoClose: 3000 });
             }
+        }
+    };
+
+    const handleSaveProduct = async (dataToSave) => {
+        const idToast = toast.loading("Đang xử lý...");
+        try {
+            if (selectedProduct) {
+                await productApi.update(selectedProduct.id, dataToSave);
+                toast.update(idToast, { render: "Cập nhật thành công! 🎉", type: "success", isLoading: false, autoClose: 2000 });
+            } else {
+                await productApi.create(dataToSave);
+                toast.update(idToast, { render: "Thêm mới thành công! 🚀", type: "success", isLoading: false, autoClose: 2000 });
+            }
+            await loadData();
+            setShowForm(false);
+            setSelectedProduct(null);
+        } catch (error) {
+            let errorMessage = "Có lỗi xảy ra!";
+            if (error.response?.status === 403) errorMessage = "🚫 Lỗi 403: Backend từ chối quyền Admin!";
+            else if (error.response?.status === 401) errorMessage = "🔑 Phiên đăng nhập hết hạn!";
+
+            toast.update(idToast, { render: errorMessage, type: "error", isLoading: false, autoClose: 4000 });
         }
     };
 
@@ -54,52 +100,30 @@ const AdminDashboard = () => {
         }]
     };
 
-    const handleSaveProduct = async (dataToSave) => {
-        try {
-            if (selectedProduct) {
-                await productApi.update(selectedProduct.id, dataToSave);
-            } else {
-                await productApi.create(dataToSave);
-            }
-            await loadData();
-            setShowForm(false);
-            setSelectedProduct(null);
-        } catch (error) {
-            console.error("Lỗi API:", error);
-            alert("Lưu thất bại!");
-        }
-    };
-
     const userName = localStorage.getItem('username') || "Quản trị viên";
 
     return (
         <div className="d-flex min-vh-100" style={{ backgroundColor: '#f8f9fc' }}>
-            {/* Sidebar */}
-            <div className="bg-white border-end shadow-sm" style={{ width: '270px', zIndex: 100 }}>
-                <div className="p-4 border-bottom bg-primary text-white text-center shadow-sm">
-                    <h5 className="fw-bold m-0"><i className="bi bi-speedometer2 me-2"></i>ADMIN PANEL</h5>
-                </div>
-                <div className="nav flex-column p-3 mt-3">
-                    <button className={`nav-link text-start py-3 px-4 rounded-3 mb-2 border-0 fw-bold ${currentTab === 'products' ? 'bg-primary text-white shadow' : 'text-secondary bg-transparent'}`}
-                        onClick={() => setCurrentTab('products')}>
-                        <i className="bi bi-box-seam-fill me-3"></i> Kho hàng
-                    </button>
-                    <button className="nav-link text-start py-3 px-4 text-secondary border-0 bg-transparent fw-bold opacity-50">
-                        <i className="bi bi-cart-fill me-3"></i> Đơn hàng
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Content */}
+            <Sidebar />
             <div className="flex-grow-1 d-flex flex-column">
                 <AdminNavbar adminName={userName} />
                 <div className="p-4">
-                    <div className="d-flex justify-content-between align-items-center mb-4">
-                        <h3 className="fw-bold text-dark">DANH SÁCH SẢN PHẨM</h3>
-                        <button className="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm"
-                            onClick={() => { setSelectedProduct(null); setShowForm(true); }}>
-                            + Thêm sản phẩm
-                        </button>
+                    {/* Header với Search */}
+                    <div className="d-flex justify-content-between align-items-center mb-4 gap-3">
+                        <h3 className="fw-bold text-dark m-0 d-none d-md-block">SẢN PHẨM</h3>
+                        <div className="d-flex gap-2 flex-grow-1 justify-content-end">
+                            <input
+                                type="text"
+                                className="form-control rounded-pill border-0 shadow-sm px-4 w-50"
+                                placeholder="Tìm theo tên hoặc danh mục..."
+                                value={searchTerm}
+                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            />
+                            <button className="btn btn-primary px-4 py-2 rounded-pill fw-bold shadow-sm"
+                                onClick={() => { setSelectedProduct(null); setShowForm(true); }}>
+                                + Thêm sản phẩm
+                            </button>
+                        </div>
                     </div>
 
                     {/* Stats Cards */}
@@ -125,7 +149,6 @@ const AdminDashboard = () => {
                     </div>
 
                     <div className="row g-4">
-                        {/* Chart */}
                         <div className="col-lg-4">
                             <div className="card border-0 shadow-sm p-4 bg-dark text-white rounded-4 h-100">
                                 <h6 className="fw-bold mb-4 text-center border-bottom pb-2">Phân bổ danh mục</h6>
@@ -133,7 +156,6 @@ const AdminDashboard = () => {
                             </div>
                         </div>
 
-                        {/* Table */}
                         <div className="col-lg-8">
                             <div className="card border-0 shadow-sm bg-dark text-white rounded-4 overflow-hidden">
                                 <table className="table table-dark table-hover align-middle m-0">
@@ -143,40 +165,44 @@ const AdminDashboard = () => {
                                             <th>Tên sản phẩm</th>
                                             <th>Giá</th>
                                             <th>Kho</th>
-                                            <th>Trạng thái</th>
                                             <th className="text-center">Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {products.map(p => (
+                                        {currentItems.map(p => (
                                             <tr key={p.id}>
                                                 <td className="ps-4"><img src={p.imageUrl} width="40" height="40" className="rounded border border-secondary" alt="" /></td>
-                                                <td className="fw-bold">{p.name}</td>
+                                                <td className="fw-bold text-truncate" style={{ maxWidth: '150px' }}>{p.name}</td>
                                                 <td className="text-info">{p.price?.toLocaleString('vi-VN')} đ</td>
                                                 <td className={`fw-bold ${p.quantity < 10 ? 'text-danger' : ''}`}>
                                                     {p.quantity} {p.quantity < 10 && <i className="bi bi-exclamation-triangle-fill ms-1"></i>}
                                                 </td>
-                                                <td>
-                                                    <span className={`badge rounded-pill ${p.status === 'Inactive' ? 'bg-danger text-white' : 'bg-success text-white'}`} style={{ padding: '6px 12px' }}>
-                                                        {p.status || 'Active'}
-                                                    </span>
-                                                </td>
                                                 <td className="text-center">
                                                     <button className="btn btn-sm btn-warning me-2" onClick={() => { setSelectedProduct(p); setShowForm(true); }}>Sửa</button>
-                                                    {/* Sử dụng hàm handleDeleteProduct mới thay cho productApi.delete trực tiếp */}
                                                     <button className="btn btn-sm btn-danger" onClick={() => handleDeleteProduct(p.id)}>Xóa</button>
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
+
+                                {/* PHÂN TRANG */}
+                                <div className="d-flex justify-content-between align-items-center p-3 border-top border-secondary bg-dark">
+                                    <small className="text-muted">Trang {currentPage} / {totalPages || 1}</small>
+                                    <div className="btn-group">
+                                        <button className="btn btn-sm btn-outline-light" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Trước</button>
+                                        {[...Array(totalPages)].map((_, i) => (
+                                            <button key={i} className={`btn btn-sm ${currentPage === i + 1 ? 'btn-primary' : 'btn-outline-light'}`} onClick={() => setCurrentPage(i + 1)}>{i + 1}</button>
+                                        ))}
+                                        <button className="btn btn-sm btn-outline-light" disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(currentPage + 1)}>Sau</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Modal Form */}
             {showForm && (
                 <div className="modal d-block" style={{ backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', zIndex: 1060 }}>
                     <div className="modal-dialog modal-lg modal-dialog-centered">

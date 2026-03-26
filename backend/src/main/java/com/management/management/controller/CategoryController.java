@@ -23,4 +23,16 @@ public class CategoryController {
     public Category create(@RequestBody Category category) {
         return categoryService.saveCategory(category);
     }
+
+    @PutMapping("/{id}")
+    public Category update(@PathVariable Long id, @RequestBody Category categoryDetails) {
+        Category category = categoryService.getCategoryById(id);
+        category.setName(categoryDetails.getName());
+        return categoryService.saveCategory(category);
+    }
+
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+    }
 }
