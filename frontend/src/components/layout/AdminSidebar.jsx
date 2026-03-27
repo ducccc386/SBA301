@@ -47,6 +47,12 @@ const Sidebar = () => {
                 >
                     <i className="bi bi-people-fill me-3"></i> Người dùng
                 </Link>
+                <Link
+                    to="/admin/reviews"
+                    className={`nav-link text-start py-3 px-4 rounded-3 mb-2 border-0 fw-bold d-flex align-items-center ${isActive('/admin/users') ? 'bg-primary text-white shadow' : 'text-secondary bg-transparent'}`}
+                >
+                    <i className="bi bi-people-fill me-3"></i> Đánh giá
+                </Link>
             </div>
         </div>
     );

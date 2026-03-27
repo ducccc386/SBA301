@@ -9,11 +9,17 @@ import Navbar from './components/layout/Navbar';
 import Home from './pages/customer/Home';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CategoryManagement from './pages/admin/CategoryManagement';
-import OrderList from './pages/admin/OrderList'; // BỔ SUNG: Khắc phục lỗi "No routes matched"
+import OrderList from './pages/admin/OrderList';
 import Login from './pages/auth/Login';
+import UserManagement from './pages/admin/UserManagement';
+import ReviewManagement from './pages/admin/ReviewManagement';
+import Register from './pages/auth/Register';
+import CartPage from './pages/customer/CartPage';
+import Checkout from './pages/customer/Checkout'; // THÊM DÒNG NÀY
 
-// Import các thành phần Bảo mật
+// Import các thành phần Bảo mật và Giỏ hàng
 import { AuthProvider } from './context/AuthContext';
+import { CartProvider } from './context/CartContext';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const AppContent = ({ searchTerm, setSearchTerm }) => {
@@ -25,13 +31,6 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
       <ToastContainer
         position="top-right"
         autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
         theme="colored"
         style={{ zIndex: 9999 }}
       />
@@ -45,8 +44,17 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
           {/* --- PUBLIC ROUTES --- */}
           <Route path="/" element={<Home searchTerm={searchTerm} />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<Checkout />} />
+          {/* --- USER PROTECTED ROUTES --- */}
+          <Route path="/checkout" element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          } />
 
-          {/* --- ADMIN ROUTES (Bọc trong ProtectedRoute để tránh lỗi 403) --- */}
+          {/* --- ADMIN ROUTES (Đã bọc ProtectedRoute) --- */}
           <Route path="/admin" element={
             <ProtectedRoute>
               <AdminDashboard />
@@ -59,14 +67,24 @@ const AppContent = ({ searchTerm, setSearchTerm }) => {
             </ProtectedRoute>
           } />
 
-          {/* BỔ SUNG QUAN TRỌNG: Route này giải quyết lỗi màn hình trắng khi vào /admin/orders */}
           <Route path="/admin/orders" element={
             <ProtectedRoute>
               <OrderList />
             </ProtectedRoute>
           } />
 
-          {/* --- CATCH ALL: Chống lỗi khi vào đường dẫn không tồn tại --- */}
+          <Route path="/admin/users" element={
+            <ProtectedRoute>
+              <UserManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/reviews" element={
+            <ProtectedRoute>
+              <ReviewManagement />
+            </ProtectedRoute>
+          } />
+
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </div>
@@ -78,9 +96,11 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   return (
     <AuthProvider>
-      <Router>
-        <AppContent searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-      </Router>
+      <CartProvider>
+        <Router>
+          <AppContent searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

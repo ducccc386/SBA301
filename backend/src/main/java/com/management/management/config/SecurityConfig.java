@@ -2,6 +2,7 @@ package com.management.management.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -44,7 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/products/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/categories/**").hasAuthority("ROLE_ADMIN")
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-
+                        .requestMatchers(HttpMethod.POST, "/api/orders").authenticated() // Khách phải login mới được
+                                                                                         // đặt hàng
                         .anyRequest().authenticated());
         return http.build();
     }

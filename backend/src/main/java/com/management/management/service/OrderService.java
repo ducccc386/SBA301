@@ -5,6 +5,9 @@ import com.management.management.entity.OrderDetail;
 import com.management.management.entity.Product;
 import com.management.management.repository.OrderRepository;
 import com.management.management.repository.ProductRepository;
+
+import java.time.LocalDateTime;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,6 +66,15 @@ public class OrderService {
         }
 
         order.setStatus(newStatus.toUpperCase());
+        return orderRepository.save(order);
+    }
+
+    public Order saveOrder(Order order) {
+        // 1. Gán ngày đặt hàng mặc định
+        order.setOrderDate(LocalDateTime.now());
+        // 2. Mặc định trạng thái là PENDING
+        order.setStatus("PENDING");
+        // 3. Lưu vào Database
         return orderRepository.save(order);
     }
 }

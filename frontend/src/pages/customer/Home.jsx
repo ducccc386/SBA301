@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import productApi from '../../api/productApi';
 import categoryApi from '../../api/categoryApi';
+import { useAuth } from '../../context/AuthContext';
+import { useCart } from '../../context/CartContext'; // THÊM DÒNG NÀY
 
-// Thêm searchTerm vào đây để nhận từ App.js
 const Home = ({ searchTerm }) => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
 
+    const { user } = useAuth();
+    const { addToCart } = useCart(); // LẤY HÀM THÊM GIỎ HÀNG
+    const navigate = useNavigate();
+
     useEffect(() => {
-        console.log("Component Home đã mount - Bắt đầu gọi API"); // Thêm dòng này
         const fetchData = async () => {
             try {
                 const prodRes = await productApi.getAllActive();
@@ -23,41 +28,45 @@ const Home = ({ searchTerm }) => {
         fetchData();
     }, []);
 
-    // LOGIC LỌC KÉP: Lọc theo Danh mục VÀ Tên sản phẩm
+    const handleAddToCart = (product) => {
+        // KIỂM TRA ĐĂNG NHẬP TRƯỚC
+        if (!user) {
+            alert("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!");
+            navigate('/login', { state: { from: window.location.pathname } });
+            return;
+        }
+
+        // THỰC HIỆN THÊM VÀO GIỎ HÀNG THẬT
+        addToCart(product);
+        alert(`Đã thêm ${product.name} vào giỏ hàng thành công!`);
+    };
+
     const filteredProducts = products.filter(p => {
-        // Kiểm tra danh mục
-        const matchesCategory = selectedCategory
-            ? p.category?.id === selectedCategory
-            : true;
-
-        // Kiểm tra từ khóa tìm kiếm (không phân biệt hoa thường)
-        const matchesSearch = searchTerm
-            ? p.name.toLowerCase().includes(searchTerm.toLowerCase())
-            : true;
-
+        const matchesCategory = selectedCategory ? p.category?.id === selectedCategory : true;
+        const matchesSearch = searchTerm ? p.name.toLowerCase().includes(searchTerm.toLowerCase()) : true;
         return matchesCategory && matchesSearch;
     });
 
     return (
-        <div className="row mt-4">
-            {/* THANH BÊN TRÁI */}
+        <div className="row mt-4 px-3" style={{ minHeight: '100vh', color: 'white' }}>
+            {/* THANH BÊN DANH MỤC */}
             <div className="col-md-3">
-                <div className="card shadow-sm border-0 mb-4">
-                    <div className="card-header bg-dark text-white fw-bold">Danh Mục</div>
+                <div className="card bg-dark text-white border-secondary mb-4 shadow">
+                    <div className="card-header bg-black fw-bold border-secondary">Danh Mục</div>
                     <ul className="list-group list-group-flush">
                         <li
-                            className={`list-group-item list-group-item-action cursor-pointer ${selectedCategory === null ? 'active' : ''}`}
-                            style={{ cursor: 'pointer' }}
+                            className={`list-group-item bg-dark text-white border-secondary cursor-pointer ${selectedCategory === null ? 'active bg-primary' : ''}`}
                             onClick={() => setSelectedCategory(null)}
+                            style={{ cursor: 'pointer' }}
                         >
                             Tất cả sản phẩm
                         </li>
                         {categories.map(cat => (
                             <li
                                 key={cat.id}
-                                className={`list-group-item list-group-item-action cursor-pointer ${selectedCategory === cat.id ? 'active' : ''}`}
-                                style={{ cursor: 'pointer' }}
+                                className={`list-group-item bg-dark text-white border-secondary cursor-pointer ${selectedCategory === cat.id ? 'active bg-primary' : ''}`}
                                 onClick={() => setSelectedCategory(cat.id)}
+                                style={{ cursor: 'pointer' }}
                             >
                                 {cat.name}
                             </li>
@@ -66,31 +75,25 @@ const Home = ({ searchTerm }) => {
                 </div>
             </div>
 
-            {/* DANH SÁCH SẢN PHẨM BÊN PHẢI */}
+            {/* DANH SÁCH SẢN PHẨM */}
             <div className="col-md-9">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h4 className="fw-bold m-0">
-                        {selectedCategory ? `Sản phẩm theo danh mục` : "Tất cả sản phẩm"}
-                    </h4>
-                    {searchTerm && (
-                        <span className="badge bg-info text-dark">Đang tìm: {searchTerm}</span>
-                    )}
-                </div>
-
                 <div className="row row-cols-1 row-cols-md-3 g-4">
                     {filteredProducts.map(p => (
                         <div className="col" key={p.id}>
-                            <div className="card h-100 border-0 shadow-sm product-card">
+                            <div className="card h-100 border-secondary bg-dark text-white shadow-sm product-card">
                                 <img
                                     src={p.imageUrl || 'https://via.placeholder.com/200'}
-                                    className="card-img-top p-3"
+                                    className="card-img-top p-3 bg-white"
                                     style={{ height: '200px', objectFit: 'contain' }}
                                     alt={p.name}
                                 />
                                 <div className="card-body text-center">
-                                    <h6 className="card-title text-truncate">{p.name}</h6>
-                                    <p className="card-text text-danger fw-bold">{p.price?.toLocaleString()} đ</p>
-                                    <button className="btn btn-outline-dark btn-sm rounded-pill w-100 fw-bold">
+                                    <h6 className="card-title text-truncate fw-bold">{p.name}</h6>
+                                    <p className="text-danger fw-bold fs-5">{p.price?.toLocaleString()} đ</p>
+                                    <button
+                                        className="btn btn-outline-light btn-sm rounded-pill w-100 fw-bold mt-2 shadow-none"
+                                        onClick={() => handleAddToCart(p)}
+                                    >
                                         Thêm vào giỏ
                                     </button>
                                 </div>
@@ -100,8 +103,8 @@ const Home = ({ searchTerm }) => {
                 </div>
 
                 {filteredProducts.length === 0 && (
-                    <div className="text-center mt-5 py-5 border rounded bg-light">
-                        <h5 className="text-muted">Không tìm thấy sản phẩm nào phù hợp.</h5>
+                    <div className="text-center mt-5 py-5 border border-secondary rounded bg-dark">
+                        <h5 className="text-secondary">Không tìm thấy sản phẩm nào phù hợp.</h5>
                     </div>
                 )}
             </div>
